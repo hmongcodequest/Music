@@ -3,41 +3,69 @@
 		Original image: https://dribbble.com/shots/5089813-90-s-Music-Player
 */
 
+(function() {
+    'use strict';
 
-let b = document.body;
-let radio = document.querySelector("#radio");
-let a = document.querySelector("#audio");
+    // Cache DOM elements
+    const radio = document.getElementById("radio");
+    const audio = document.getElementById("audio");
+    const son = document.getElementById("son");
+    const soff = document.getElementById("soff");
 
-let sfa = document.querySelectorAll(".speaker__front");
-let sta = document.querySelectorAll(".speaker__top");
-let sba = document.querySelectorAll(".speaker__back");
-let sla = document.querySelectorAll(".speaker__left");
-let sra = document.querySelectorAll(".speaker__right");
+    // Cache speaker elements
+    const speakers = {
+        front: document.querySelectorAll(".speaker__front"),
+        top: document.querySelectorAll(".speaker__top"),
+        back: document.querySelectorAll(".speaker__back"),
+        left: document.querySelectorAll(".speaker__left"),
+        right: document.querySelectorAll(".speaker__right")
+    };
 
-let son = document.querySelector("#son");
-let soff = document.querySelector("#soff");
+    // Preload audio for better performance
+    audio.preload = 'auto';
+    audio.loop = true;
 
+    // Toggle function with optimized class manipulation
+    const toggleSpeakers = (className) => {
+        speakers.front.forEach(el => el.classList.toggle(className));
+        speakers.top.forEach(el => el.classList.toggle(className));
+        speakers.back.forEach(el => el.classList.toggle(className));
+        speakers.left.forEach(el => el.classList.toggle(className));
+        speakers.right.forEach(el => el.classList.toggle(className));
+    };
 
-/*******************/
-let playAudio = () => {
-    a.loop = true;
+    // Play/Pause handler
+    const handleAudio = (e) => {
+        // Only trigger on direct clicks, not bubbles from interactive elements
+        if (e.target.closest('.svg-icon')) return;
 
-    if (a.paused) a.play();
-    else {
-        a.pause();
-        a.currentTime = 0;
-    }
-    sfa.forEach( f => f.classList.toggle("sfa") );
-    sta.forEach( f => f.classList.toggle("sta") );
-    sba.forEach( f => f.classList.toggle("sba") );
-    sla.forEach( f => f.classList.toggle("sla") );
-    sra.forEach( f => f.classList.toggle("sra") );
+        e.stopPropagation();
+        
+        if (audio.paused) {
+            audio.play().catch(err => console.log('Audio play failed:', err));
+        } else {
+            audio.pause();
+            audio.currentTime = 0;
+        }
 
-    radio.classList.toggle("radio-a")
+        toggleSpeakers('sfa');
+        toggleSpeakers('sta');
+        toggleSpeakers('sba');
+        toggleSpeakers('sla');
+        toggleSpeakers('sra');
 
-    son.classList.toggle("s")
-    soff.classList.toggle("s")
-}
+        radio.classList.toggle("radio-a");
+        son.classList.toggle("s");
+        soff.classList.toggle("s");
+    };
 
-/*******************/
-b.addEventListener("click", playAudio)
+    // Use event delegation with specific target
+    document.addEventListener("click", handleAudio);
+
+    // Expose audio controls globally if needed
+    window.audioPlayer = {
+        play: () => audio.play(),
+        pause: () => audio.pause(),
+        toggle: handleAudio
+    };
+})();
